@@ -1,0 +1,26 @@
+{
+  "name": "robinson-project1",
+  "version": "1.0.0",
+  "description": "Webapp that lets you record and share short piano tunes!",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "pretest": "eslint ./src --fix",
+    "test": "echo \"Tests complete\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/djr5851/robinson-project1.git"
+  },
+  "author": "Daniel Robinson",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/djr5851/robinson-project1/issues"
+  },
+  "homepage": "https://github.com/djr5851/robinson-project1#readme",
+  "devDependencies": {
+    "eslint": "^7.9.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-plugin-import": "^2.22.0"
+  }
+}
