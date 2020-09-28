@@ -18,20 +18,20 @@ const getCSS = (request, response) => {
 };
 
 const getMain = (request, response) => {
-    response.writeHead(200, { 'Content-Type': 'text/javascript' });
-    response.write(main);
-    response.end();
+  response.writeHead(200, { 'Content-Type': 'text/javascript' });
+  response.write(main);
+  response.end();
 };
 
 const getClasses = (request, response) => {
-    response.writeHead(200, { 'Content-Type': 'text/javascript' });
-    response.write(classes);
-    response.end();
+  response.writeHead(200, { 'Content-Type': 'text/javascript' });
+  response.write(classes);
+  response.end();
 };
-  
+
 module.exports = {
   getIndex,
   getCSS,
   getMain,
-  getClasses
+  getClasses,
 };
