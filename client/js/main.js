@@ -48,7 +48,9 @@ let a, s, d, f, g, h, j, k, l, semiColon, w, e, t, y, u, o, p;
 let keyA, keyS, keyD, keyF, keyG, keyH, keyJ, keyK, keyL, keySemi, keyW, keyE, keyT, keyY, keyU, keyO, keyP;
 let c1, db1, d1, eb1, e1, f1, gb1, g1, ab1, a1, bb1, b1, c2, db2, d2, eb2, e2;
 let notes = [];
+let recordedNotes = [];
 let paused = true;
+let recording = false;
 
 // local storage
 const prefix = "djr5851";
@@ -90,7 +92,7 @@ function setup() {
 	// How to play
 	instructionsScene = new PIXI.Container();
 	instructionsScene.visible = false;
-	stage.addChild(instructionsScene);
+	//stage.addChild(instructionsScene);
 
 	// Practice Mode
 	practiceScene = new PIXI.Container();
@@ -337,7 +339,7 @@ function createLabelAndButtons() {
 	playButton.y = 280;
 	playButton.interactive = true;
 	playButton.buttonMode = true;
-	playButton.on("pointerup", showSongs);
+	playButton.on("pointerup", songs);
 	playButton.on('pointerover', e => e.target.alpha = 0.7);
 	playButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
 	menuScene.addChild(playButton);
@@ -351,9 +353,9 @@ function createLabelAndButtons() {
 	instructionsButton.on("pointerup", showInstructions);
 	instructionsButton.on('pointerover', e => e.target.alpha = 0.7);
 	instructionsButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
-	menuScene.addChild(instructionsButton);
+	//menuScene.addChild(instructionsButton);
 
-	let practiceButton = new PIXI.Text("Practice Mode");
+	let practiceButton = new PIXI.Text("Record");
 	practiceButton.style = buttonStyle;
 	practiceButton.x = 470;
 	practiceButton.y = 400;
@@ -493,7 +495,9 @@ function showInstructions() {
 
 // Change to the game scene and start the game loop
 function startGame() {
+	time = 0;
 	paused = false;
+	recording = false;
 	startScene.visible = false;
 	gameOverScene.visible = false;
 	gameScene.visible = true;
@@ -527,10 +531,12 @@ function startGame() {
 
 // Change to the practice mode
 function startPractice() {
+	recordedNotes = [];
 	backToMenuButton.x = 80;
 	backToMenuButton.y = 55;
 	backToMenuButton.style.fill = "0xFFFFFF";
 	paused = false;
+	recording = true;
 	startScene.visible = false;
 	gameOverScene.visible = false;
 	gameScene.visible = false;
@@ -774,6 +780,7 @@ function playKeys() {
 		keyA.visible = true;
 		checkNote("C1");
 		c1.play();
+		if (recording) recordedNotes.unshift({note: "C1", time: time});
 	}
 	a.release = () => {
 		keyA.visible = false;
@@ -782,6 +789,7 @@ function playKeys() {
 		keyS.visible = true;
 		checkNote("D1");
 		d1.play();
+		if (recording) recordedNotes.unshift({note: "D1", time: time});
 	}
 	s.release = () => {
 		keyS.visible = false;
@@ -790,6 +798,7 @@ function playKeys() {
 		keyD.visible = true;
 		checkNote("E1");
 		e1.play();
+		if (recording) recordedNotes.unshift({note: "E1", time: time});
 	}
 	d.release = () => {
 		keyD.visible = false;
@@ -798,6 +807,7 @@ function playKeys() {
 		keyF.visible = true;
 		checkNote("F1");
 		f1.play();
+		if (recording) recordedNotes.unshift({note: "F1", time: time});
 	}
 	f.release = () => {
 		keyF.visible = false;
@@ -806,6 +816,7 @@ function playKeys() {
 		keyG.visible = true;
 		checkNote("G1");
 		g1.play();
+		if (recording) recordedNotes.unshift({note: "G1", time: time});
 	}
 	g.release = () => {
 		keyG.visible = false;
@@ -814,6 +825,7 @@ function playKeys() {
 		keyH.visible = true;
 		checkNote("A1");
 		a1.play();
+		if (recording) recordedNotes.unshift({note: "A1", time: time});
 	}
 	h.release = () => {
 		keyH.visible = false;
@@ -822,6 +834,7 @@ function playKeys() {
 		keyJ.visible = true;
 		checkNote("B1");
 		b1.play();
+		if (recording) recordedNotes.unshift({note: "B1", time: time});
 	}
 	j.release = () => {
 		keyJ.visible = false;
@@ -830,6 +843,7 @@ function playKeys() {
 		keyK.visible = true;
 		checkNote("C2");
 		c2.play();
+		if (recording) recordedNotes.unshift({note: "C2", time: time});
 	}
 	k.release = () => {
 		keyK.visible = false;
@@ -838,6 +852,7 @@ function playKeys() {
 		keyL.visible = true;
 		checkNote("D2");
 		d2.play();
+		if (recording) recordedNotes.unshift({note: "D2", time: time});
 	}
 	l.release = () => {
 		keyL.visible = false;
@@ -846,6 +861,7 @@ function playKeys() {
 		keySemi.visible = true;
 		checkNote("E2");
 		e2.play();
+		if (recording) recordedNotes.unshift({note: "E2", time: time});
 	}
 	semiColon.release = () => {
 		keySemi.visible = false;
@@ -854,6 +870,7 @@ function playKeys() {
 		keyW.visible = true;
 		checkNote("Db1");
 		db1.play();
+		if (recording) recordedNotes.unshift({note: "Db1", time: time});
 	}
 	w.release = () => {
 		keyW.visible = false;
@@ -862,6 +879,7 @@ function playKeys() {
 		keyE.visible = true;
 		checkNote("Eb1");
 		eb1.play();
+		if (recording) recordedNotes.unshift({note: "Eb1", time: time});
 	}
 	e.release = () => {
 		keyE.visible = false;
@@ -870,6 +888,7 @@ function playKeys() {
 		keyT.visible = true;
 		checkNote("Gb1");
 		gb1.play();
+		if (recording) recordedNotes.unshift({note: "Gb1", time: time});
 	}
 	t.release = () => {
 		keyT.visible = false;
@@ -878,6 +897,7 @@ function playKeys() {
 		keyY.visible = true;
 		checkNote("Ab1");
 		ab1.play();
+		if (recording) recordedNotes.unshift({note: "Ab1", time: time});
 	}
 	y.release = () => {
 		keyY.visible = false;
@@ -886,6 +906,7 @@ function playKeys() {
 		keyU.visible = true;
 		checkNote("Bb1");
 		bb1.play();
+		if (recording) recordedNotes.unshift({note: "Bb1", time: time});
 	}
 	u.release = () => {
 		keyU.visible = false;
@@ -894,6 +915,7 @@ function playKeys() {
 		keyO.visible = true;
 		checkNote("Db1");
 		db2.play();
+		if (recording) recordedNotes.unshift({note: "Db1", time: time});
 	}
 	o.release = () => {
 		keyO.visible = false;
@@ -902,6 +924,7 @@ function playKeys() {
 		checkNote("Eb2");
 		keyP.visible = true;
 		eb2.play();
+		if (recording) recordedNotes.unshift({note: "Eb2", time: time});
 	}
 	p.release = () => {
 		keyP.visible = false;
@@ -941,305 +964,23 @@ function checkNote(noteName) {
 
 // Stores and retrieves the different songs
 function songs(songName) {
-	startGame();
-	// Mary Had a Little Lamb
-	if (songName == "song1"){
-		currentSongIndex = 1;
-		notes.unshift(new Note("B1", 0));
-		notes.unshift(new Note("A1", 30));
-		notes.unshift(new Note("G1", 60));
-		notes.unshift(new Note("A1", 90));
-		notes.unshift(new Note("B1", 120));
-		notes.unshift(new Note("B1", 150));
-		notes.unshift(new Note("B1", 180));
-	
-		notes.unshift(new Note("A1", 240));
-		notes.unshift(new Note("A1", 270));
-		notes.unshift(new Note("A1", 300));
-	
-		notes.unshift(new Note("B1", 360));
-		notes.unshift(new Note("D2", 390));
-		notes.unshift(new Note("D2", 420));
-	
-		notes.unshift(new Note("B1", 480));
-		notes.unshift(new Note("A1", 510));
-		notes.unshift(new Note("G1", 540));
-		notes.unshift(new Note("A1", 570));
-		notes.unshift(new Note("B1", 600));
-		notes.unshift(new Note("B1", 630));
-		notes.unshift(new Note("B1", 660));
-	
-		notes.unshift(new Note("A1", 720));
-		notes.unshift(new Note("A1", 750));
-		notes.unshift(new Note("B1", 780));
-		notes.unshift(new Note("A1", 810));
-		notes.unshift(new Note("G1", 840));
-		}
-	// Hot Cross Buns
-	else if (songName == "song2"){
-		currentSongIndex = 2;
-		notes.unshift(new Note("E2", 0));
-		notes.unshift(new Note("D2", 30));
-		notes.unshift(new Note("C2", 60));
-
-		notes.unshift(new Note("E2", 120));
-		notes.unshift(new Note("D2", 150));
-		notes.unshift(new Note("C2", 180));
-
-		notes.unshift(new Note("C2", 240));
-		notes.unshift(new Note("C2", 255));
-		notes.unshift(new Note("C2", 270));
-		notes.unshift(new Note("C2", 285));
-		notes.unshift(new Note("D2", 300));
-		notes.unshift(new Note("D2", 315));
-		notes.unshift(new Note("D2", 330));
-		notes.unshift(new Note("D2", 345));
-		notes.unshift(new Note("E2", 360));
-		notes.unshift(new Note("D2", 390));
-		notes.unshift(new Note("C2", 420));
-
-		notes.unshift(new Note("E2", 480));
-		notes.unshift(new Note("G1", 480));
-		notes.unshift(new Note("D2", 510));
-		notes.unshift(new Note("F1", 510));
-		notes.unshift(new Note("C2", 540));
-		notes.unshift(new Note("E1", 540));
-
-		notes.unshift(new Note("E2", 600));
-		notes.unshift(new Note("G1", 600));
-		notes.unshift(new Note("D2", 630));
-		notes.unshift(new Note("F1", 630));
-		notes.unshift(new Note("C2", 660));
-		notes.unshift(new Note("E1", 660));
-
-		notes.unshift(new Note("C2", 720));
-		notes.unshift(new Note("E1", 720));
-		notes.unshift(new Note("C2", 735));
-		notes.unshift(new Note("E1", 735));
-		notes.unshift(new Note("C2", 750));
-		notes.unshift(new Note("E1", 750));
-		notes.unshift(new Note("C2", 765));
-		notes.unshift(new Note("E1", 765));
-		notes.unshift(new Note("D2", 780));
-		notes.unshift(new Note("F1", 780));
-		notes.unshift(new Note("D2", 795));
-		notes.unshift(new Note("F1", 795));
-		notes.unshift(new Note("D2", 810));
-		notes.unshift(new Note("F1", 810));
-		notes.unshift(new Note("D2", 825));
-		notes.unshift(new Note("F1", 825));
-		notes.unshift(new Note("E2", 840));
-		notes.unshift(new Note("G1", 840));
-		notes.unshift(new Note("D2", 870));
-		notes.unshift(new Note("F1", 870));
-		notes.unshift(new Note("C2", 900));
-		notes.unshift(new Note("E1", 900));
-		}
-	// Twinkle Twinkle Little Star
-	else if (songName == "song3"){
-		currentSongIndex = 3;
-		notes.unshift(new Note("F1", 0));
-		notes.unshift(new Note("C1", 0));
-		notes.unshift(new Note("F1", 30));
-		notes.unshift(new Note("C1", 30));
-		notes.unshift(new Note("C2", 60));
-		notes.unshift(new Note("A1", 60));
-		notes.unshift(new Note("C2", 90));
-		notes.unshift(new Note("A1", 90));
-		notes.unshift(new Note("D2", 120));
-		notes.unshift(new Note("Bb1", 120));
-		notes.unshift(new Note("D2", 150));
-		notes.unshift(new Note("Bb1", 150));
-		notes.unshift(new Note("A1", 180));
-		notes.unshift(new Note("C2", 180));
-
-		notes.unshift(new Note("Bb1", 240));
-		notes.unshift(new Note("G1", 240));
-		notes.unshift(new Note("Bb1", 270));
-		notes.unshift(new Note("G1", 270));
-		notes.unshift(new Note("A1", 300));
-		notes.unshift(new Note("F1", 300));
-		notes.unshift(new Note("A1", 330));
-		notes.unshift(new Note("F1", 330));
-		notes.unshift(new Note("G1", 360));
-		notes.unshift(new Note("E1", 360));
-		notes.unshift(new Note("G1", 390));
-		notes.unshift(new Note("E1", 390));
-		notes.unshift(new Note("F1", 420));
-		notes.unshift(new Note("C1", 420));
-
-		notes.unshift(new Note("C2", 480));
-		notes.unshift(new Note("A1", 480));
-		notes.unshift(new Note("C2", 510));
-		notes.unshift(new Note("A1", 510));
-		notes.unshift(new Note("Bb1", 540));
-		notes.unshift(new Note("G1", 540));
-		notes.unshift(new Note("Bb1", 570));
-		notes.unshift(new Note("G1", 570));
-		notes.unshift(new Note("A1", 600));
-		notes.unshift(new Note("F1", 600));
-		notes.unshift(new Note("A1", 630));
-		notes.unshift(new Note("F1", 630));
-		notes.unshift(new Note("G1", 660));
-		notes.unshift(new Note("E1", 660));
-
-		notes.unshift(new Note("C2", 720));
-		notes.unshift(new Note("A1", 720));
-		notes.unshift(new Note("C2", 750));
-		notes.unshift(new Note("A1", 750));
-		notes.unshift(new Note("Bb1", 780));
-		notes.unshift(new Note("G1", 780));
-		notes.unshift(new Note("Bb1", 810));
-		notes.unshift(new Note("G1", 810));
-		notes.unshift(new Note("A1", 840));
-		notes.unshift(new Note("F1", 840));
-		notes.unshift(new Note("A1", 870));
-		notes.unshift(new Note("F1", 870));
-		notes.unshift(new Note("G1", 900));
-		notes.unshift(new Note("E1", 900));
-
-		notes.unshift(new Note("F1", 960));
-		notes.unshift(new Note("C1", 960));
-		notes.unshift(new Note("F1", 990));
-		notes.unshift(new Note("C1", 990));
-		notes.unshift(new Note("C2", 1020));
-		notes.unshift(new Note("A1", 1020));
-		notes.unshift(new Note("C2", 1050));
-		notes.unshift(new Note("A1", 1050));
-		notes.unshift(new Note("D2", 1080));
-		notes.unshift(new Note("Bb1", 1080));
-		notes.unshift(new Note("D2", 1110));
-		notes.unshift(new Note("Bb1", 1110));
-		notes.unshift(new Note("A1", 1140));
-		notes.unshift(new Note("C2", 1140));
-
-		notes.unshift(new Note("Bb1", 1200));
-		notes.unshift(new Note("G1", 1200));
-		notes.unshift(new Note("Bb1", 1230));
-		notes.unshift(new Note("G1", 1230));
-		notes.unshift(new Note("A1", 1260));
-		notes.unshift(new Note("F1", 1260));
-		notes.unshift(new Note("A1", 1290));
-		notes.unshift(new Note("F1", 1290));
-		notes.unshift(new Note("G1", 1320));
-		notes.unshift(new Note("E1", 1320));
-		notes.unshift(new Note("G1", 1350));
-		notes.unshift(new Note("E1", 1350));
-		notes.unshift(new Note("F1", 1380));
-		notes.unshift(new Note("C1", 1380));
+	if(recordedNotes.length > 0) startGame();
+	// if (currentSongIndex == 1){
+	// 	highScoreLabel.text = "High Score: " + Math.round(highScore1/notes.length * 100) + "%";
+	// }
+	// else if (cnotesurrentSongIndex == 2){
+	// 	highScoreLabel.text = "High Score: " + Math.round(highScore2/notes.length * 100) + "%";
+	// }
+	// else if (currentSongIndex == 3){
+	// 	highScoreLabel.text = "High Score: " + Math.round(highScore3/notes.length * 100) + "%";
+	// }
+	// else if (currentSongIndex == 4){
+	// 	highScoreLabel.text = "High Score: " + Math.round(highScore4/notes.length * 100) + "%";
+	// }
+	for (let n of recordedNotes) {
+		notes.unshift(new Note(n.note, n.time));
 	}
-	// Für Elise
-	else if (songName == "song4"){
-		currentSongIndex = 4;
-		notes.unshift(new Note("E2", 0));
-		notes.unshift(new Note("Eb2", 15));
-		notes.unshift(new Note("E2", 30));
-		notes.unshift(new Note("Eb2", 45));
-		notes.unshift(new Note("E2", 60));
-		notes.unshift(new Note("B1", 75));
-		notes.unshift(new Note("D2", 90));
-		notes.unshift(new Note("C2", 105));
-		notes.unshift(new Note("A1", 120));
-
-
-		notes.unshift(new Note("C1", 165));
-		notes.unshift(new Note("E1", 180));
-		notes.unshift(new Note("A1", 195));
-		notes.unshift(new Note("B1", 210));
-
-
-		notes.unshift(new Note("E1", 255));
-		notes.unshift(new Note("Ab1", 270));
-		notes.unshift(new Note("B1", 285));
-		notes.unshift(new Note("C2", 300));
-
-
-		notes.unshift(new Note("E1", 345));
-		notes.unshift(new Note("E2", 360));
-		notes.unshift(new Note("Eb2", 375));
-		notes.unshift(new Note("E2", 390));
-		notes.unshift(new Note("Eb2", 405));
-		notes.unshift(new Note("E2", 420));
-		notes.unshift(new Note("B1", 435));
-		notes.unshift(new Note("D2", 450));
-		notes.unshift(new Note("C2", 465));
-		notes.unshift(new Note("A1", 480));
-
-		notes.unshift(new Note("C1", 510));
-		notes.unshift(new Note("E1", 525));
-		notes.unshift(new Note("A1", 540));
-		notes.unshift(new Note("B1", 555));
-
-
-		notes.unshift(new Note("E1", 600));
-		notes.unshift(new Note("C2", 615));
-		notes.unshift(new Note("B1", 630));
-		notes.unshift(new Note("A1", 645));
-
-
-		notes.unshift(new Note("E1", 690));
-		notes.unshift(new Note("E2", 705));
-		notes.unshift(new Note("Eb2", 720));
-		notes.unshift(new Note("E2", 735));
-		notes.unshift(new Note("Eb2", 750));
-		notes.unshift(new Note("E2", 765));
-		notes.unshift(new Note("B1", 780));
-		notes.unshift(new Note("D2", 795));
-		notes.unshift(new Note("C2", 810));
-		notes.unshift(new Note("A1", 825));
-
-
-		notes.unshift(new Note("C1", 870));
-		notes.unshift(new Note("E1", 885));
-		notes.unshift(new Note("A1", 900));
-		notes.unshift(new Note("B1", 915));
-
-
-		notes.unshift(new Note("E1", 960));
-		notes.unshift(new Note("Ab1", 975));
-		notes.unshift(new Note("B1", 990));
-		notes.unshift(new Note("C2", 1005));
-
-
-		notes.unshift(new Note("E1", 1050));
-		notes.unshift(new Note("E2", 1065));
-		notes.unshift(new Note("Eb2", 1080));
-		notes.unshift(new Note("E2", 1095));
-		notes.unshift(new Note("Eb2", 1110));
-		notes.unshift(new Note("E2", 1125));
-		notes.unshift(new Note("B1", 1140));
-		notes.unshift(new Note("D2", 1155));
-		notes.unshift(new Note("C2", 1170));
-		notes.unshift(new Note("A1", 1185));
-
-		notes.unshift(new Note("C1", 1215));
-		notes.unshift(new Note("E1", 1230));
-		notes.unshift(new Note("A1", 1245));
-		notes.unshift(new Note("B1", 1260));
-
-
-		notes.unshift(new Note("E1", 1305));
-		notes.unshift(new Note("C2", 1320));
-		notes.unshift(new Note("B1", 1335));
-		notes.unshift(new Note("A1", 1350));
-
-	}
-
-	if (currentSongIndex == 1){
-		highScoreLabel.text = "High Score: " + Math.round(highScore1/notes.length * 100) + "%";
-	}
-	else if (currentSongIndex == 2){
-		highScoreLabel.text = "High Score: " + Math.round(highScore2/notes.length * 100) + "%";
-	}
-	else if (currentSongIndex == 3){
-		highScoreLabel.text = "High Score: " + Math.round(highScore3/notes.length * 100) + "%";
-	}
-	else if (currentSongIndex == 4){
-		highScoreLabel.text = "High Score: " + Math.round(highScore4/notes.length * 100) + "%";
-	}
-
-
-		for (let n of notes) {
+	for (let n of notes) {
 		gameScene.addChild(n);
 	}
 }
