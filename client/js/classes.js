@@ -7,11 +7,13 @@ class Piano extends PIXI.Sprite {
 }
 
 class Note extends PIXI.Sprite {
-	constructor(noteName, startTime = 0){
+	constructor(noteName, startTime = 0, noteSound, playback){
 		if (noteName == "Db1"){
 			super(PIXI.loader.resources["images/BlackNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 367;
 			this.y = -138;
 		}
@@ -19,6 +21,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/BlackNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 419;
 			this.y = -138;
 		}
@@ -26,6 +30,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/BlackNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 518;
 			this.y = -138;
 		}
@@ -33,6 +39,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/BlackNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 578;
 			this.y = -138;
 		}
@@ -40,6 +48,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/BlackNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 641;
 			this.y = -138;
 		}
@@ -47,6 +57,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/BlackNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 739;
 			this.y = -138;
 		}
@@ -54,6 +66,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/BlackNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 793;
 			this.y = -138;
 		}
@@ -61,6 +75,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/WhiteNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 334;
 			this.y = -138;
 		}
@@ -68,6 +84,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/WhiteNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 387;
 			this.y = -138;
 		}
@@ -75,6 +93,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/WhiteNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 441;
 			this.y = -138;
 		}
@@ -82,6 +102,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/WhiteNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 495;
 			this.y = -138;
 		}
@@ -89,6 +111,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/WhiteNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 548;
 			this.y = -138;
 		}
@@ -96,6 +120,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/WhiteNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 601;
 			this.y = -138;
 		}
@@ -103,6 +129,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/WhiteNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 655;
 			this.y = -138;
 		}
@@ -110,6 +138,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/WhiteNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 708;
 			this.y = -138;
 		}
@@ -117,6 +147,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/WhiteNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 761;
 			this.y = -138;
 		}
@@ -124,6 +156,8 @@ class Note extends PIXI.Sprite {
 			super(PIXI.loader.resources["images/WhiteNote.png"].texture);
 			this.noteName = noteName;
 			this.startTime = startTime;
+			this.noteSound = noteSound;
+			this.playback = playback;
 			this.x = 814;
 			this.y = -138;
 		}
@@ -134,6 +168,11 @@ class Note extends PIXI.Sprite {
 	move(dt = 1 / 60) {
 		if (time >= this.startTime){
 			this.y += 500 * dt;
+		}
+		if (this.playback && this.y >= 480 && this.y <= 525) {
+			this.noteSound.play();
+			this.visible = false;
+			this.playback = false;
 		}
 	}
 

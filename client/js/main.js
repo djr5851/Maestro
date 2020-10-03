@@ -1,7 +1,6 @@
 "use strict";
 window.onload = (e) => {
 	scaleToWindow(app.view, "black");
-	storeValues();
 }
 window.onresize = (e) => scaleToWindow(app.view, "black");
 const app = new PIXI.Application(1280, 720);
@@ -25,22 +24,18 @@ let startScene;
 let gameScene;
 let gameOverScene;
 let menuScene;
-let practiceScene;
+let recordScene;
 let instructionsScene;
 let songSelectionScene;
 let time = 0;
 let score = 0;
 let currentSongIndex;
-let highScore1 = 0;
-let highScore2 = 0;
-let highScore3 = 0;
-let highScore4 = 0;
 let startLabel1;
 let scoreLabel;
-let highScoreLabel;
 let finalScoreLabel;
-let finalHighScoreLabel;
 let backToMenuButton;
+let gameButton;
+let playbackButton;
 let piano;
 let menuBG;
 let instructionsBG;
@@ -51,13 +46,7 @@ let notes = [];
 let recordedNotes = [];
 let paused = true;
 let recording = false;
-
-// local storage
-const prefix = "djr5851";
-const song1ScoreKey = prefix + "song1Score";
-const song2ScoreKey = prefix + "song2Score";
-const song3ScoreKey = prefix + "song3Score";
-const song4ScoreKey = prefix + "song4Score";
+let playbackMode;
 
 // Set up all initial values and load assets
 function setup() {
@@ -92,12 +81,12 @@ function setup() {
 	// How to play
 	instructionsScene = new PIXI.Container();
 	instructionsScene.visible = false;
-	//stage.addChild(instructionsScene);
+	stage.addChild(instructionsScene);
 
-	// Practice Mode
-	practiceScene = new PIXI.Container();
-	practiceScene.visible = false;
-	stage.addChild(practiceScene);
+	// Record Mode
+	recordScene = new PIXI.Container();
+	recordScene.visible = false;
+	stage.addChild(recordScene);
 
 	// Game
 	gameScene = new PIXI.Container();
@@ -333,86 +322,54 @@ function createLabelAndButtons() {
 	startScene.addChild(menuButton);
 
 	// Main Menu
-	let playButton = new PIXI.Text("Play");
-	playButton.style = buttonStyle;
-	playButton.x = 580;
-	playButton.y = 280;
-	playButton.interactive = true;
-	playButton.buttonMode = true;
-	playButton.on("pointerup", songs);
-	playButton.on('pointerover', e => e.target.alpha = 0.7);
-	playButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
-	menuScene.addChild(playButton);
+	gameButton = new PIXI.Text("Start Game");
+	gameButton.style = buttonStyle;
+	gameButton.x = 510;
+	gameButton.y = 420;
+	gameButton.interactive = false;
+	gameButton.alpha = 0.5;
+	gameButton.buttonMode = true;
+	gameButton.on("pointerup", startGame);
+	gameButton.on('pointerover', e => e.target.alpha = 0.7);
+	gameButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
+	menuScene.addChild(gameButton);
+
+	playbackButton = new PIXI.Text("Playback");
+	playbackButton.style = buttonStyle;
+	playbackButton.x = 535;
+	playbackButton.y = 350;
+	playbackButton.interactive = false;
+	playbackButton.alpha = 0.5;
+	playbackButton.buttonMode = true;
+	playbackButton.on("pointerup", startPlayback);
+	playbackButton.on('pointerover', e => e.target.alpha = 0.7);
+	playbackButton.on('pointerout', e => e.currentTarget.alpha = 1.0); 
+	menuScene.addChild(playbackButton);
 
 	let instructionsButton = new PIXI.Text("How to Play");
 	instructionsButton.style = buttonStyle;
 	instructionsButton.x = 495;
-	instructionsButton.y = 340;
+	instructionsButton.y = 490;
 	instructionsButton.interactive = true;
 	instructionsButton.buttonMode = true;
 	instructionsButton.on("pointerup", showInstructions);
 	instructionsButton.on('pointerover', e => e.target.alpha = 0.7);
 	instructionsButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
-	//menuScene.addChild(instructionsButton);
+	menuScene.addChild(instructionsButton);
 
-	let practiceButton = new PIXI.Text("Record");
-	practiceButton.style = buttonStyle;
-	practiceButton.x = 470;
-	practiceButton.y = 400;
-	practiceButton.interactive = true;
-	practiceButton.buttonMode = true;
-	practiceButton.on("pointerup", startPractice);
-	practiceButton.on('pointerover', e => e.target.alpha = 0.7);
-	practiceButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
-	menuScene.addChild(practiceButton);
-
-	// Song Selection
-	let song1 = new PIXI.Text("Mary Had a Little Lamb");
-	song1.style = buttonStyleSmall;
-	song1.x = 440;
-	song1.y = 280;
-	song1.interactive = true;
-	song1.buttonMode = true;
-	song1.on("pointerup", e => {songs("song1");});
-	song1.on('pointerover', e => e.target.alpha = 0.7);
-	song1.on('pointerout', e => e.currentTarget.alpha = 1.0);
-	songSelectionScene.addChild(song1);
-
-	let song2 = new PIXI.Text("Hot Cross Buns");
-	song2.style = buttonStyleSmall;
-	song2.x = 440;
-	song2.y = 320;
-	song2.interactive = true;
-	song2.buttonMode = true;
-	song2.on("pointerup", e => {songs("song2");});
-	song2.on('pointerover', e => e.target.alpha = 0.7);
-	song2.on('pointerout', e => e.currentTarget.alpha = 1.0);
-	songSelectionScene.addChild(song2);
-
-	let song3 = new PIXI.Text("Twinkle Twinkle Little Star");
-	song3.style = buttonStyleSmall;
-	song3.x = 440;
-	song3.y = 360;
-	song3.interactive = true;
-	song3.buttonMode = true;
-	song3.on("pointerup", e => {songs("song3");});
-	song3.on('pointerover', e => e.target.alpha = 0.7);
-	song3.on('pointerout', e => e.currentTarget.alpha = 1.0);
-	songSelectionScene.addChild(song3);
-
-	let song4 = new PIXI.Text("Für Elise");
-	song4.style = buttonStyleSmall;
-	song4.x = 440;
-	song4.y = 400;
-	song4.interactive = true;
-	song4.buttonMode = true;
-	song4.on("pointerup", e => {songs("song4");});
-	song4.on('pointerover', e => e.target.alpha = 0.7);
-	song4.on('pointerout', e => e.currentTarget.alpha = 1.0);
-	songSelectionScene.addChild(song4);
+	let recordButton = new PIXI.Text("Start Recording");
+	recordButton.style = buttonStyle;
+	recordButton.x = 455;
+	recordButton.y = 280;
+	recordButton.interactive = true;
+	recordButton.buttonMode = true;
+	recordButton.on("pointerup", startRecord);
+	recordButton.on('pointerover', e => e.target.alpha = 0.7);
+	recordButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
+	menuScene.addChild(recordButton);
 
 	// Instructions
-	let instructions = new PIXI.Text("On the bottom of the screen is a piano with characters\n on them that correspond to keys on a QWERTY computer\n keyboard. When a note, represented by a rectangle moving\n from the top of the screen toward the piano, is touching\n a piano key, press the corresponding key on your keyboard.\n There is a practice mode that allows you to freely play the\n on-screen piano without loading a song. Use this to get\n acclimated to your instrument and prepare for the real thing.");
+	let instructions = new PIXI.Text("Get started by clicking Start Recording. From here, you can play \nthe virtual piano using your keyboard, and every note you play will be \nrecorded. When you're done, click stop recording which will bring you \nback to the main menu, where you can listen back to your recording or \ntest your skills in the game mode. In game mode, try to match your key \npresses to the notes that appear on screen.");
 	instructions.style = new PIXI.TextStyle({
 		align: "center",
 		fill: 0xFFFFFF,
@@ -429,11 +386,6 @@ function createLabelAndButtons() {
 	scoreLabel.style = textStyle;
 	scoreLabel.x = 5;
 	scoreLabel.y = 5;
-	highScoreLabel = new PIXI.Text("");
-	highScoreLabel.style = textStyle;
-	highScoreLabel.x = 5;
-	highScoreLabel.y = 25;
-
 
 	// Game Over
 	finalScoreLabel = new PIXI.Text();
@@ -442,13 +394,7 @@ function createLabelAndButtons() {
 	finalScoreLabel.y = 150;
 	gameOverScene.addChild(finalScoreLabel);
 
-	finalHighScoreLabel = new PIXI.Text();
-	finalHighScoreLabel.style = buttonStyle;
-	finalHighScoreLabel.x = 440;
-	finalHighScoreLabel.y = 200;
-	gameOverScene.addChild(finalHighScoreLabel);
-
-	backToMenuButton = new PIXI.Text("Return to Menu");
+	backToMenuButton = new PIXI.Text("Click to stop recording");
 	backToMenuButton.style = buttonStyle;
 	backToMenuButton.x = 80;
 	backToMenuButton.y = 55;
@@ -471,7 +417,7 @@ function showSongs() {
 	gameScene.visible = false;
 	menuScene.visible = false;
 	instructionsScene.visible = false;
-	practiceScene.visible = false;
+	recordScene.visible = false;
 	songSelectionScene.visible = true;
 }
 
@@ -479,6 +425,7 @@ function showSongs() {
 function showInstructions() {
 	backToMenuButton.x = 80;
 	backToMenuButton.y = 55;
+	backToMenuButton.text = "Return to Menu"
 	menuBG.visible = false;
 	instructionsBG.visible = true;
 	backToMenuButton.style.fill = "0xFFFFFF";
@@ -489,12 +436,12 @@ function showInstructions() {
 	gameScene.visible = false;
 	menuScene.visible = false;
 	instructionsScene.visible = true;
-	practiceScene.visible = false;
+	recordScene.visible = false;
 	songSelectionScene.visible = false;
 }
 
 // Change to the game scene and start the game loop
-function startGame() {
+function startGameLoop(playbackMode) {
 	time = 0;
 	paused = false;
 	recording = false;
@@ -503,12 +450,11 @@ function startGame() {
 	gameScene.visible = true;
 	menuScene.visible = false;
 	instructionsScene.visible = false;
-	practiceScene.visible = false;
+	recordScene.visible = false;
 	songSelectionScene.visible = false;
 	piano = new Piano(0, 0);
 	gameScene.addChild(piano);
-	gameScene.addChild(scoreLabel);
-	gameScene.addChild(highScoreLabel);
+	if (!playbackMode) gameScene.addChild(scoreLabel);
 	a = keyboard("a"),
 		s = keyboard("s"),
 		d = keyboard("d"),
@@ -526,14 +472,15 @@ function startGame() {
 		u = keyboard("u"),
 		o = keyboard("o"),
 		p = keyboard("p");	
-	playKeys();
+	if (!playbackMode) playKeys();
 }
 
-// Change to the practice mode
-function startPractice() {
+// Change to the Record mode
+function startRecord() {
 	recordedNotes = [];
 	backToMenuButton.x = 80;
 	backToMenuButton.y = 55;
+	backToMenuButton.text = "Click to stop recording"
 	backToMenuButton.style.fill = "0xFFFFFF";
 	paused = false;
 	recording = true;
@@ -542,11 +489,11 @@ function startPractice() {
 	gameScene.visible = false;
 	menuScene.visible = false;
 	instructionsScene.visible = false;
-	practiceScene.visible = true;
+	recordScene.visible = true;
 	songSelectionScene.visible = false;
 	piano = new Piano(0, 0);
-	practiceScene.addChild(piano);
-	practiceScene.addChild(backToMenuButton);
+	recordScene.addChild(piano);
+	recordScene.addChild(backToMenuButton);
 	a = keyboard("a"),
 		s = keyboard("s"),
 		d = keyboard("d"),
@@ -674,6 +621,18 @@ function showMenu() {
 	menuBG.visible = true;
 	instructionsBG.visible = false;
 	backToMenuButton.style.fill = "0x000000";
+	if (recordedNotes.length >= 1) {
+		playbackButton.interactive = true;
+		playbackButton.alpha = 1.0;
+		gameButton.interactive = true;
+		gameButton.alpha = 1.0;
+	}
+	else {
+		playbackButton.interactive = false;
+		playbackButton.alpha = 0.5;
+		gameButton.interactive = false;
+		gameButton.alpha = 0.5;
+	}
 	reset();
 	menuScene.addChild(startLabel1);
 	paused = true;
@@ -682,7 +641,7 @@ function showMenu() {
 	gameScene.visible = false;
 	menuScene.visible = true;
 	instructionsScene.visible = false;
-	practiceScene.visible = false;
+	recordScene.visible = false;
 	songSelectionScene.visible = false;
 }
 
@@ -732,45 +691,21 @@ function reset(){
 
 // Show the game over scene
 function gameOver() {
-	
+	backToMenuButton.text = "Return to Menu";
+	backToMenuButton.x = 460;
+	backToMenuButton.y = 250;
 	gameOverScene.addChild(backToMenuButton);
+	if(playbackMode) finalScoreLabel.visible = false;
+	else finalScoreLabel.visible = true;
 	finalScoreLabel.text = "Score: " + Math.round(score/notes.length * 100) + "%";
-	if (currentSongIndex == 1){
-		if (score >= highScore1){
-			highScore1 = score;
-		}
-		finalHighScoreLabel.text = "High Score: " + Math.round(highScore1/notes.length * 100) + "%";
-	}
-	else if (currentSongIndex == 2){
-		if (score >= highScore2){
-			highScore2 = score;
-		}
-		finalHighScoreLabel.text = "High Score: " + Math.round(highScore2/notes.length * 100) + "%";
-	}
-	else if (currentSongIndex == 3){
-		if (score >= highScore3){
-			highScore3 = score;
-		}
-		finalHighScoreLabel.text = "High Score: " + Math.round(highScore3/notes.length * 100) + "%";
-	}
-	else if (currentSongIndex == 4){
-		if (score >= highScore4){
-			highScore4 = score;
-		}
-		finalHighScoreLabel.text = "High Score: " + Math.round(highScore4/notes.length * 100) + "%";
-	}
 	paused = true;
-    localStorage.setItem(song1ScoreKey, highScore1);
-    localStorage.setItem(song2ScoreKey, highScore2);
-    localStorage.setItem(song3ScoreKey, highScore3);
-    localStorage.setItem(song4ScoreKey, highScore4);
 	reset();
 	startScene.visible = false;
 	gameOverScene.visible = true;
 	gameScene.visible = false;
 	menuScene.visible = false;
 	instructionsScene.visible = false;
-	practiceScene.visible = false;
+	recordScene.visible = false;
 	songSelectionScene.visible = false;
 }
 
@@ -780,7 +715,7 @@ function playKeys() {
 		keyA.visible = true;
 		checkNote("C1");
 		c1.play();
-		if (recording) recordedNotes.unshift({note: "C1", time: time});
+		if (recording) recordedNotes.unshift({note: "C1", time: time, sound: c1});
 	}
 	a.release = () => {
 		keyA.visible = false;
@@ -789,7 +724,7 @@ function playKeys() {
 		keyS.visible = true;
 		checkNote("D1");
 		d1.play();
-		if (recording) recordedNotes.unshift({note: "D1", time: time});
+		if (recording) recordedNotes.unshift({note: "D1", time: time, sound: d1});
 	}
 	s.release = () => {
 		keyS.visible = false;
@@ -798,7 +733,7 @@ function playKeys() {
 		keyD.visible = true;
 		checkNote("E1");
 		e1.play();
-		if (recording) recordedNotes.unshift({note: "E1", time: time});
+		if (recording) recordedNotes.unshift({note: "E1", time: time, sound: e1});
 	}
 	d.release = () => {
 		keyD.visible = false;
@@ -807,7 +742,7 @@ function playKeys() {
 		keyF.visible = true;
 		checkNote("F1");
 		f1.play();
-		if (recording) recordedNotes.unshift({note: "F1", time: time});
+		if (recording) recordedNotes.unshift({note: "F1", time: time, sound: f1});
 	}
 	f.release = () => {
 		keyF.visible = false;
@@ -816,7 +751,7 @@ function playKeys() {
 		keyG.visible = true;
 		checkNote("G1");
 		g1.play();
-		if (recording) recordedNotes.unshift({note: "G1", time: time});
+		if (recording) recordedNotes.unshift({note: "G1", time: time, sound: g1});
 	}
 	g.release = () => {
 		keyG.visible = false;
@@ -825,7 +760,7 @@ function playKeys() {
 		keyH.visible = true;
 		checkNote("A1");
 		a1.play();
-		if (recording) recordedNotes.unshift({note: "A1", time: time});
+		if (recording) recordedNotes.unshift({note: "A1", time: time, sound: a1});
 	}
 	h.release = () => {
 		keyH.visible = false;
@@ -834,7 +769,7 @@ function playKeys() {
 		keyJ.visible = true;
 		checkNote("B1");
 		b1.play();
-		if (recording) recordedNotes.unshift({note: "B1", time: time});
+		if (recording) recordedNotes.unshift({note: "B1", time: time, sound: b1});
 	}
 	j.release = () => {
 		keyJ.visible = false;
@@ -843,7 +778,7 @@ function playKeys() {
 		keyK.visible = true;
 		checkNote("C2");
 		c2.play();
-		if (recording) recordedNotes.unshift({note: "C2", time: time});
+		if (recording) recordedNotes.unshift({note: "C2", time: time, sound: c2});
 	}
 	k.release = () => {
 		keyK.visible = false;
@@ -852,7 +787,7 @@ function playKeys() {
 		keyL.visible = true;
 		checkNote("D2");
 		d2.play();
-		if (recording) recordedNotes.unshift({note: "D2", time: time});
+		if (recording) recordedNotes.unshift({note: "D2", time: time, sound: d2});
 	}
 	l.release = () => {
 		keyL.visible = false;
@@ -861,7 +796,7 @@ function playKeys() {
 		keySemi.visible = true;
 		checkNote("E2");
 		e2.play();
-		if (recording) recordedNotes.unshift({note: "E2", time: time});
+		if (recording) recordedNotes.unshift({note: "E2", time: time, sound: e2});
 	}
 	semiColon.release = () => {
 		keySemi.visible = false;
@@ -870,7 +805,7 @@ function playKeys() {
 		keyW.visible = true;
 		checkNote("Db1");
 		db1.play();
-		if (recording) recordedNotes.unshift({note: "Db1", time: time});
+		if (recording) recordedNotes.unshift({note: "Db1", time: time, sound: db1});
 	}
 	w.release = () => {
 		keyW.visible = false;
@@ -879,7 +814,7 @@ function playKeys() {
 		keyE.visible = true;
 		checkNote("Eb1");
 		eb1.play();
-		if (recording) recordedNotes.unshift({note: "Eb1", time: time});
+		if (recording) recordedNotes.unshift({note: "Eb1", time: time, sound: eb1});
 	}
 	e.release = () => {
 		keyE.visible = false;
@@ -888,7 +823,7 @@ function playKeys() {
 		keyT.visible = true;
 		checkNote("Gb1");
 		gb1.play();
-		if (recording) recordedNotes.unshift({note: "Gb1", time: time});
+		if (recording) recordedNotes.unshift({note: "Gb1", time: time, sound: gb1});
 	}
 	t.release = () => {
 		keyT.visible = false;
@@ -897,7 +832,7 @@ function playKeys() {
 		keyY.visible = true;
 		checkNote("Ab1");
 		ab1.play();
-		if (recording) recordedNotes.unshift({note: "Ab1", time: time});
+		if (recording) recordedNotes.unshift({note: "Ab1", time: time, sound: ab1});
 	}
 	y.release = () => {
 		keyY.visible = false;
@@ -906,7 +841,7 @@ function playKeys() {
 		keyU.visible = true;
 		checkNote("Bb1");
 		bb1.play();
-		if (recording) recordedNotes.unshift({note: "Bb1", time: time});
+		if (recording) recordedNotes.unshift({note: "Bb1", time: time, sound: bb1});
 	}
 	u.release = () => {
 		keyU.visible = false;
@@ -915,7 +850,7 @@ function playKeys() {
 		keyO.visible = true;
 		checkNote("Db1");
 		db2.play();
-		if (recording) recordedNotes.unshift({note: "Db1", time: time});
+		if (recording) recordedNotes.unshift({note: "Db1", time: time, sound: db1});
 	}
 	o.release = () => {
 		keyO.visible = false;
@@ -924,7 +859,7 @@ function playKeys() {
 		checkNote("Eb2");
 		keyP.visible = true;
 		eb2.play();
-		if (recording) recordedNotes.unshift({note: "Eb2", time: time});
+		if (recording) recordedNotes.unshift({note: "Eb2", time: time, sound: eb2});
 	}
 	p.release = () => {
 		keyP.visible = false;
@@ -944,7 +879,7 @@ function gameLoop() {
 	}
 	if (gameScene.visible == true) {
 		scoreLabel.text = "Score: " + Math.round(score/notes.length * 100) + "%";
-		if (time >= notes[0].startTime + 250) {
+		if (time >= notes[notes.length - 1].startTime + 250) {
 			gameOver();
 		}
 	}
@@ -963,22 +898,23 @@ function checkNote(noteName) {
 }
 
 // Stores and retrieves the different songs
-function songs(songName) {
-	if(recordedNotes.length > 0) startGame();
-	// if (currentSongIndex == 1){
-	// 	highScoreLabel.text = "High Score: " + Math.round(highScore1/notes.length * 100) + "%";
-	// }
-	// else if (cnotesurrentSongIndex == 2){
-	// 	highScoreLabel.text = "High Score: " + Math.round(highScore2/notes.length * 100) + "%";
-	// }
-	// else if (currentSongIndex == 3){
-	// 	highScoreLabel.text = "High Score: " + Math.round(highScore3/notes.length * 100) + "%";
-	// }
-	// else if (currentSongIndex == 4){
-	// 	highScoreLabel.text = "High Score: " + Math.round(highScore4/notes.length * 100) + "%";
-	// }
+function startGame(songName) {
+	playbackMode = false;
+	startGameLoop(playbackMode);
 	for (let n of recordedNotes) {
-		notes.unshift(new Note(n.note, n.time));
+		notes.unshift(new Note(n.note, n.time, n.sound, false));
+	}
+	for (let n of notes) {
+		gameScene.addChild(n);
+	}
+}
+
+// Stores and retrieves the different songs
+function startPlayback(songName) {
+	playbackMode = true;
+	startGameLoop(playbackMode);
+	for (let n of recordedNotes) {
+		notes.unshift(new Note(n.note, n.time, n.sound, true));
 	}
 	for (let n of notes) {
 		gameScene.addChild(n);
@@ -1033,26 +969,6 @@ function keyboard(value) {
 	return key;
 }
 
-// Use local storage to store high scores
-function storeValues() {
-    const storedSong1Score = localStorage.getItem(song1ScoreKey);
-    const storedSong2Score = localStorage.getItem(song2ScoreKey);
-    const storedSong3Score = localStorage.getItem(song3ScoreKey);
-    const storedSong4Score = localStorage.getItem(song4ScoreKey);
-
-    if (storedSong1Score) {
-        highScore1 = storedSong1Score;
-    }
-    if (storedSong2Score) {
-        highScore2 = storedSong2Score;
-    }
-    if (storedSong3Score) {
-        highScore3 = storedSong3Score;
-    }
-    if (storedSong4Score) {
-        highScore4 = storedSong4Score;
-    }
-}
 // Source: https://github.com/kittykatattack/scaleToWindow/blob/master/scaleToWindow.js
 function scaleToWindow(canvas, backgroundColor) {
 	let scaleX, scaleY, scale, center;
