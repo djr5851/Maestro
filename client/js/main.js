@@ -18,7 +18,6 @@ load(setup);
 // aliases
 let stage;
 
-
 // game variables
 let startScene;
 let gameScene;
@@ -26,16 +25,21 @@ let gameOverScene;
 let menuScene;
 let recordScene;
 let instructionsScene;
-let songSelectionScene;
+let saveSongScene;
+let loadSongScene;
 let time = 0;
 let score = 0;
-let currentSongIndex;
 let startLabel1;
 let scoreLabel;
 let finalScoreLabel;
+let songNotFoundLabel;
+let titleRequiredLabel;
 let backToMenuButton;
+let saveSongButton;
+let stopRecordingButton;
 let gameButton;
 let playbackButton;
+let startSongButton;
 let piano;
 let menuBG;
 let instructionsBG;
@@ -47,6 +51,7 @@ let recordedNotes = [];
 let paused = true;
 let recording = false;
 let playbackMode;
+let input;
 
 // Set up all initial values and load assets
 function setup() {
@@ -63,7 +68,6 @@ function setup() {
 	menuBG.y = 0;
 	app.stage.addChild(menuBG);
 
-
 	// Start
 	startScene = new PIXI.Container();
 	stage.addChild(startScene);
@@ -73,10 +77,15 @@ function setup() {
 	menuScene.visible = false;
 	stage.addChild(menuScene);
 
-	// Song Selection
-	songSelectionScene = new PIXI.Container();
-	songSelectionScene.visible = false;
-	stage.addChild(songSelectionScene);
+	// Save Song
+	saveSongScene = new PIXI.Container();
+	saveSongScene.visible = false;
+	stage.addChild(saveSongScene);
+
+	// Load Song
+	loadSongScene = new PIXI.Container();
+	loadSongScene.visible = false;
+	stage.addChild(loadSongScene);
 
 	// How to play
 	instructionsScene = new PIXI.Container();
@@ -153,6 +162,7 @@ function setup() {
 		src: ['sounds/E2.wav']
 	});
 
+	// Key press sprites
 	keyA = new PIXI.Sprite.fromImage('images/WhiteKeyPress.png');
 	keyA.x = 372;
 	keyA.y = 547;
@@ -322,17 +332,16 @@ function createLabelAndButtons() {
 	startScene.addChild(menuButton);
 
 	// Main Menu
-	gameButton = new PIXI.Text("Start Game");
-	gameButton.style = buttonStyle;
-	gameButton.x = 510;
-	gameButton.y = 420;
-	gameButton.interactive = false;
-	gameButton.alpha = 0.5;
-	gameButton.buttonMode = true;
-	gameButton.on("pointerup", startGame);
-	gameButton.on('pointerover', e => e.target.alpha = 0.7);
-	gameButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
-	menuScene.addChild(gameButton);
+	let recordButton = new PIXI.Text("Start Recording");
+	recordButton.style = buttonStyle;
+	recordButton.x = 455;
+	recordButton.y = 280;
+	recordButton.interactive = true;
+	recordButton.buttonMode = true;
+	recordButton.on("pointerup", startRecord);
+	recordButton.on('pointerover', e => e.target.alpha = 0.7);
+	recordButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
+	menuScene.addChild(recordButton);
 
 	playbackButton = new PIXI.Text("Playback");
 	playbackButton.style = buttonStyle;
@@ -341,10 +350,22 @@ function createLabelAndButtons() {
 	playbackButton.interactive = false;
 	playbackButton.alpha = 0.5;
 	playbackButton.buttonMode = true;
-	playbackButton.on("pointerup", startPlayback);
+	playbackButton.on("pointerup", () => showLoadSong(true));
 	playbackButton.on('pointerover', e => e.target.alpha = 0.7);
 	playbackButton.on('pointerout', e => e.currentTarget.alpha = 1.0); 
 	menuScene.addChild(playbackButton);
+
+	gameButton = new PIXI.Text("Start Game");
+	gameButton.style = buttonStyle;
+	gameButton.x = 510;
+	gameButton.y = 420;
+	gameButton.interactive = false;
+	gameButton.alpha = 0.5;
+	gameButton.buttonMode = true;
+	gameButton.on("pointerup", () => showLoadSong(false));
+	gameButton.on('pointerover', e => e.target.alpha = 0.7);
+	gameButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
+	menuScene.addChild(gameButton);
 
 	let instructionsButton = new PIXI.Text("How to Play");
 	instructionsButton.style = buttonStyle;
@@ -356,17 +377,6 @@ function createLabelAndButtons() {
 	instructionsButton.on('pointerover', e => e.target.alpha = 0.7);
 	instructionsButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
 	menuScene.addChild(instructionsButton);
-
-	let recordButton = new PIXI.Text("Start Recording");
-	recordButton.style = buttonStyle;
-	recordButton.x = 455;
-	recordButton.y = 280;
-	recordButton.interactive = true;
-	recordButton.buttonMode = true;
-	recordButton.on("pointerup", startRecord);
-	recordButton.on('pointerover', e => e.target.alpha = 0.7);
-	recordButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
-	menuScene.addChild(recordButton);
 
 	// Instructions
 	let instructions = new PIXI.Text("Get started by clicking Start Recording. From here, you can play \nthe virtual piano using your keyboard, and every note you play will be \nrecorded. When you're done, click stop recording which will bring you \nback to the main menu, where you can listen back to your recording or \ntest your skills in the game mode. In game mode, try to match your key \npresses to the notes that appear on screen.");
@@ -394,7 +404,7 @@ function createLabelAndButtons() {
 	finalScoreLabel.y = 150;
 	gameOverScene.addChild(finalScoreLabel);
 
-	backToMenuButton = new PIXI.Text("Click to stop recording");
+	backToMenuButton = new PIXI.Text("Return to menu");
 	backToMenuButton.style = buttonStyle;
 	backToMenuButton.x = 80;
 	backToMenuButton.y = 55;
@@ -403,14 +413,104 @@ function createLabelAndButtons() {
 	backToMenuButton.on("pointerup", showMenu);
 	backToMenuButton.on('pointerover', e => e.target.alpha = 0.7);
 	backToMenuButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
+
+	// Recording
+	stopRecordingButton = new PIXI.Text("Click to stop recording");
+	stopRecordingButton.style = buttonStyle;
+	stopRecordingButton.x = 80;
+	stopRecordingButton.y = 55;
+	stopRecordingButton.interactive = true;
+	stopRecordingButton.buttonMode = true;
+	stopRecordingButton.on("pointerup", showSaveSong);
+	stopRecordingButton.on('pointerover', e => e.target.alpha = 0.7);
+	stopRecordingButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
+
+	// Save/load song
+	saveSongButton = new PIXI.Text("Save Song");
+	saveSongButton.style = buttonStyle;
+	saveSongButton.x = 80;
+	saveSongButton.y = 55;
+	saveSongButton.interactive = true;
+	saveSongButton.buttonMode = true;
+	saveSongButton.on("pointerup", saveSong);
+	saveSongButton.on('pointerover', e => e.target.alpha = 0.7);
+	saveSongButton.on('pointerout', e => e.currentTarget.alpha = 1.0);
+
+	input = new PIXI.TextInput({
+		input: {
+			fontSize: '36px',
+			padding: '12px',
+			width: '400px',
+			color: '#26272E'
+		},
+		box: {
+			default: {fill: 0xE8E9F3, rounded: 12, stroke: {color: 0xCBCEE0, width: 3}},
+			focused: {fill: 0xE1E3EE, rounded: 12, stroke: {color: 0xABAFC6, width: 3}},
+			disabled: {fill: 0xDBDBDB, rounded: 12}
+		}
+	})
+	
+	input.placeholder = 'Enter song title...'
+	input.x = 640
+	input.y = 300
+	input.pivot.x = input.width/2
+	input.pivot.y = input.height/2
+	input.visible = false;
+	
+	app.stage.addChild(input);
+
+	startSongButton = new PIXI.Text("Start");
+	startSongButton.style = buttonStyle;
+	startSongButton.x = 580;
+	startSongButton.y = 405;
+	startSongButton.interactive = true;
+	startSongButton.alpha = 1.0;
+	startSongButton.buttonMode = true;
+	startSongButton.on("pointerup", loadSong);
+	startSongButton.on('pointerover', e => e.target.alpha = 0.7);
+	startSongButton.on('pointerout', e => e.currentTarget.alpha = 1.0); 
+
+	songNotFoundLabel = new PIXI.Text("Song not found!");
+	songNotFoundLabel.style = buttonStyle;
+	songNotFoundLabel.x = 445;
+	songNotFoundLabel.y = 100;
+	songNotFoundLabel.visible = false;
+	loadSongScene.addChild(songNotFoundLabel);	
+
+	titleRequiredLabel = new PIXI.Text("Title required!");
+	titleRequiredLabel.style = buttonStyle;
+	titleRequiredLabel.x = 465;
+	titleRequiredLabel.y = 100;
+	titleRequiredLabel.visible = false;
+	saveSongScene.addChild(titleRequiredLabel);	
 }
 
-// Change to the song selection scene
-function showSongs() {
-	songSelectionScene.addChild(startLabel1);
-	songSelectionScene.addChild(backToMenuButton);
-	backToMenuButton.x = 455;
-	backToMenuButton.y = 500;
+// Save song to server using post request
+function saveSong() {
+	// Try to save song, if no title is entered 400 error code is given
+	let xhr = new XMLHttpRequest();
+	let obj = {name: input.text, notes: recordedNotes};
+	xhr.open("POST", "/saveSong", true);
+	xhr.setRequestHeader('Content-Type', 'application/json');
+	xhr.send(JSON.stringify(obj));
+	// Dont return to menu until user enters a name
+	if (input.text === "") {
+		titleRequiredLabel.visible = true;
+	}
+	else {
+		showMenu();
+		titleRequiredLabel.visible = false;
+	}
+};
+
+// Change to the song saving scene
+function showSaveSong() {
+	reset();
+	saveSongScene.addChild(saveSongButton);
+	saveSongButton.x = 525;
+	saveSongButton.y = 500;
+	backToMenuButton.style.fill = "0x000000";
+	input.visible = true;
 	paused = true;
 	startScene.visible = false;
 	gameOverScene.visible = false;
@@ -418,7 +518,27 @@ function showSongs() {
 	menuScene.visible = false;
 	instructionsScene.visible = false;
 	recordScene.visible = false;
-	songSelectionScene.visible = true;
+	saveSongScene.visible = true;
+	loadSongScene.visible = false;
+}
+
+// Change to the song loading scene
+function showLoadSong(_playbackMode) {
+	playbackMode = _playbackMode;
+	loadSongScene.addChild(startSongButton);
+	backToMenuButton.x = 455;
+	backToMenuButton.y = 500;
+	backToMenuButton.style.fill = "0x000000";
+	input.visible = true;
+	paused = true;
+	startScene.visible = false;
+	gameOverScene.visible = false;
+	gameScene.visible = false;
+	menuScene.visible = false;
+	instructionsScene.visible = false;
+	recordScene.visible = false;
+	saveSongScene.visible = false;
+	loadSongScene.visible = true;
 }
 
 // Change to the instructions scene
@@ -437,21 +557,48 @@ function showInstructions() {
 	menuScene.visible = false;
 	instructionsScene.visible = true;
 	recordScene.visible = false;
-	songSelectionScene.visible = false;
+	saveSongScene.visible = false;
+	loadSongScene.visible = false;
 }
 
+// parse JSON response
+function parseJSON (xhr) {
+	if(xhr.response) {
+		const obj = JSON.parse(xhr.response);
+		if(!obj["songs"][input.text]) {
+			songNotFoundLabel.visible = true;
+			return
+		}
+		recordedNotes = obj["songs"][input.text].notes;
+	}
+	songNotFoundLabel.visible = false;
+	if (playbackMode) startPlayback();
+	else startGame();
+};
+
+// execute get request for songs
+function loadSong() {
+	const xhr = new XMLHttpRequest();
+	xhr.open('GET', `/loadSongs?playback=${playbackMode}`);
+	xhr.setRequestHeader('Accept', 'application/json');
+	xhr.onload = () => parseJSON(xhr);
+	xhr.send();
+}
+  
 // Change to the game scene and start the game loop
 function startGameLoop(playbackMode) {
 	time = 0;
 	paused = false;
 	recording = false;
 	startScene.visible = false;
+	input.visible = false;
 	gameOverScene.visible = false;
 	gameScene.visible = true;
 	menuScene.visible = false;
 	instructionsScene.visible = false;
 	recordScene.visible = false;
-	songSelectionScene.visible = false;
+	saveSongScene.visible = false;
+	loadSongScene.visible = false;
 	piano = new Piano(0, 0);
 	gameScene.addChild(piano);
 	if (!playbackMode) gameScene.addChild(scoreLabel);
@@ -475,13 +622,12 @@ function startGameLoop(playbackMode) {
 	if (!playbackMode) playKeys();
 }
 
-// Change to the Record mode
+// Change to the Record scene
 function startRecord() {
 	recordedNotes = [];
-	backToMenuButton.x = 80;
-	backToMenuButton.y = 55;
-	backToMenuButton.text = "Click to stop recording"
-	backToMenuButton.style.fill = "0xFFFFFF";
+	stopRecordingButton.x = 80;
+	stopRecordingButton.y = 55;
+	stopRecordingButton.style.fill = "0xFFFFFF";
 	paused = false;
 	recording = true;
 	startScene.visible = false;
@@ -490,10 +636,11 @@ function startRecord() {
 	menuScene.visible = false;
 	instructionsScene.visible = false;
 	recordScene.visible = true;
-	songSelectionScene.visible = false;
+	saveSongScene.visible = false;
+	loadSongScene.visible = false;
 	piano = new Piano(0, 0);
 	recordScene.addChild(piano);
-	recordScene.addChild(backToMenuButton);
+	recordScene.addChild(stopRecordingButton);
 	a = keyboard("a"),
 		s = keyboard("s"),
 		d = keyboard("d"),
@@ -618,6 +765,8 @@ function startRecord() {
 
 // Change to the main menu scene
 function showMenu() {
+	startLabel1.visible = true;
+	input.visible = false;
 	menuBG.visible = true;
 	instructionsBG.visible = false;
 	backToMenuButton.style.fill = "0x000000";
@@ -642,7 +791,8 @@ function showMenu() {
 	menuScene.visible = true;
 	instructionsScene.visible = false;
 	recordScene.visible = false;
-	songSelectionScene.visible = false;
+	saveSongScene.visible = false;
+	loadSongScene.visible = false;
 }
 
 // Reset all values and stop listening for keyboard input so that the game can be replayed
@@ -706,7 +856,8 @@ function gameOver() {
 	menuScene.visible = false;
 	instructionsScene.visible = false;
 	recordScene.visible = false;
-	songSelectionScene.visible = false;
+	saveSongScene.visible = false;
+	loadSongScene.visible = false;
 }
 
 // Play virtual piano using computer keyboard input
@@ -715,7 +866,7 @@ function playKeys() {
 		keyA.visible = true;
 		checkNote("C1");
 		c1.play();
-		if (recording) recordedNotes.unshift({note: "C1", time: time, sound: c1});
+		if (recording) recordedNotes.unshift({note: "C1", time: time});
 	}
 	a.release = () => {
 		keyA.visible = false;
@@ -724,7 +875,7 @@ function playKeys() {
 		keyS.visible = true;
 		checkNote("D1");
 		d1.play();
-		if (recording) recordedNotes.unshift({note: "D1", time: time, sound: d1});
+		if (recording) recordedNotes.unshift({note: "D1", time: time});
 	}
 	s.release = () => {
 		keyS.visible = false;
@@ -733,7 +884,7 @@ function playKeys() {
 		keyD.visible = true;
 		checkNote("E1");
 		e1.play();
-		if (recording) recordedNotes.unshift({note: "E1", time: time, sound: e1});
+		if (recording) recordedNotes.unshift({note: "E1", time: time});
 	}
 	d.release = () => {
 		keyD.visible = false;
@@ -742,7 +893,7 @@ function playKeys() {
 		keyF.visible = true;
 		checkNote("F1");
 		f1.play();
-		if (recording) recordedNotes.unshift({note: "F1", time: time, sound: f1});
+		if (recording) recordedNotes.unshift({note: "F1", time: time});
 	}
 	f.release = () => {
 		keyF.visible = false;
@@ -751,7 +902,7 @@ function playKeys() {
 		keyG.visible = true;
 		checkNote("G1");
 		g1.play();
-		if (recording) recordedNotes.unshift({note: "G1", time: time, sound: g1});
+		if (recording) recordedNotes.unshift({note: "G1", time: time});
 	}
 	g.release = () => {
 		keyG.visible = false;
@@ -760,7 +911,7 @@ function playKeys() {
 		keyH.visible = true;
 		checkNote("A1");
 		a1.play();
-		if (recording) recordedNotes.unshift({note: "A1", time: time, sound: a1});
+		if (recording) recordedNotes.unshift({note: "A1", time: time});
 	}
 	h.release = () => {
 		keyH.visible = false;
@@ -769,7 +920,7 @@ function playKeys() {
 		keyJ.visible = true;
 		checkNote("B1");
 		b1.play();
-		if (recording) recordedNotes.unshift({note: "B1", time: time, sound: b1});
+		if (recording) recordedNotes.unshift({note: "B1", time: time});
 	}
 	j.release = () => {
 		keyJ.visible = false;
@@ -778,7 +929,7 @@ function playKeys() {
 		keyK.visible = true;
 		checkNote("C2");
 		c2.play();
-		if (recording) recordedNotes.unshift({note: "C2", time: time, sound: c2});
+		if (recording) recordedNotes.unshift({note: "C2", time: time});
 	}
 	k.release = () => {
 		keyK.visible = false;
@@ -787,7 +938,7 @@ function playKeys() {
 		keyL.visible = true;
 		checkNote("D2");
 		d2.play();
-		if (recording) recordedNotes.unshift({note: "D2", time: time, sound: d2});
+		if (recording) recordedNotes.unshift({note: "D2", time: time});
 	}
 	l.release = () => {
 		keyL.visible = false;
@@ -796,7 +947,7 @@ function playKeys() {
 		keySemi.visible = true;
 		checkNote("E2");
 		e2.play();
-		if (recording) recordedNotes.unshift({note: "E2", time: time, sound: e2});
+		if (recording) recordedNotes.unshift({note: "E2", time: time});
 	}
 	semiColon.release = () => {
 		keySemi.visible = false;
@@ -805,7 +956,7 @@ function playKeys() {
 		keyW.visible = true;
 		checkNote("Db1");
 		db1.play();
-		if (recording) recordedNotes.unshift({note: "Db1", time: time, sound: db1});
+		if (recording) recordedNotes.unshift({note: "Db1", time: time});
 	}
 	w.release = () => {
 		keyW.visible = false;
@@ -814,7 +965,7 @@ function playKeys() {
 		keyE.visible = true;
 		checkNote("Eb1");
 		eb1.play();
-		if (recording) recordedNotes.unshift({note: "Eb1", time: time, sound: eb1});
+		if (recording) recordedNotes.unshift({note: "Eb1", time: time});
 	}
 	e.release = () => {
 		keyE.visible = false;
@@ -823,7 +974,7 @@ function playKeys() {
 		keyT.visible = true;
 		checkNote("Gb1");
 		gb1.play();
-		if (recording) recordedNotes.unshift({note: "Gb1", time: time, sound: gb1});
+		if (recording) recordedNotes.unshift({note: "Gb1", time: time});
 	}
 	t.release = () => {
 		keyT.visible = false;
@@ -832,7 +983,7 @@ function playKeys() {
 		keyY.visible = true;
 		checkNote("Ab1");
 		ab1.play();
-		if (recording) recordedNotes.unshift({note: "Ab1", time: time, sound: ab1});
+		if (recording) recordedNotes.unshift({note: "Ab1", time: time});
 	}
 	y.release = () => {
 		keyY.visible = false;
@@ -841,7 +992,7 @@ function playKeys() {
 		keyU.visible = true;
 		checkNote("Bb1");
 		bb1.play();
-		if (recording) recordedNotes.unshift({note: "Bb1", time: time, sound: bb1});
+		if (recording) recordedNotes.unshift({note: "Bb1", time: time});
 	}
 	u.release = () => {
 		keyU.visible = false;
@@ -850,7 +1001,7 @@ function playKeys() {
 		keyO.visible = true;
 		checkNote("Db1");
 		db2.play();
-		if (recording) recordedNotes.unshift({note: "Db1", time: time, sound: db1});
+		if (recording) recordedNotes.unshift({note: "Db1", time: time});
 	}
 	o.release = () => {
 		keyO.visible = false;
@@ -859,7 +1010,7 @@ function playKeys() {
 		checkNote("Eb2");
 		keyP.visible = true;
 		eb2.play();
-		if (recording) recordedNotes.unshift({note: "Eb2", time: time, sound: eb2});
+		if (recording) recordedNotes.unshift({note: "Eb2", time: time});
 	}
 	p.release = () => {
 		keyP.visible = false;
@@ -897,24 +1048,24 @@ function checkNote(noteName) {
 	}
 }
 
-// Stores and retrieves the different songs
+// Start game with user input
 function startGame(songName) {
 	playbackMode = false;
 	startGameLoop(playbackMode);
 	for (let n of recordedNotes) {
-		notes.unshift(new Note(n.note, n.time, n.sound, false));
+		notes.unshift(new Note(n.note, n.time, false));
 	}
 	for (let n of notes) {
 		gameScene.addChild(n);
 	}
 }
 
-// Stores and retrieves the different songs
+// Start game with playback and no user input
 function startPlayback(songName) {
 	playbackMode = true;
 	startGameLoop(playbackMode);
 	for (let n of recordedNotes) {
-		notes.unshift(new Note(n.note, n.time, n.sound, true));
+		notes.unshift(new Note(n.note, n.time, true));
 	}
 	for (let n of notes) {
 		gameScene.addChild(n);

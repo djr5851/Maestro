@@ -1,4 +1,4 @@
-const users = {};
+const songs = {};
 
 // function to send response with body
 const respondJSON = (request, response, status, object) => {
@@ -17,41 +17,43 @@ const respondJSONMeta = (request, response, status) => {
   response.end();
 };
 
-// function to send user data
-const getUsers = (request, response) => {
+// function to request songs
+const loadSongs = (request, response, params) => {
   const responseJSON = {
-    users,
+    songs,
   };
+
+  console.dir(params);
 
   return respondJSON(request, response, 200, responseJSON);
 };
 
-// function to send user metadata
-const getUsersMeta = (request, response) => respondJSONMeta(request, response, 200);
+// function to request song metadata
+const loadSongsMeta = (request, response) => respondJSONMeta(request, response, 200);
 
-// function to add a user from a POST body
-const addUser = (request, response, body) => {
+// function to add a song from a POST body
+const saveSong = (request, response, body) => {
   const responseJSON = {
-    message: 'Name and age are both required.',
+    message: 'Song title required',
   };
 
-  if (!body.name || !body.age) {
+  if (!body.name) {
     responseJSON.id = 'missingParams';
     return respondJSON(request, response, 400, responseJSON);
   }
 
-  // assume user doesnt already exist with created response 20
+  // assume song doesnt already exist with created response 201
   let responseCode = 201;
 
-  // if user's name exists change to update response 204
-  if (users[body.name]) {
+  // if song name exists change to update response 204
+  if (songs[body.name]) {
     responseCode = 204;
   } else {
-    users[body.name] = {};
-    users[body.name].name = body.name;
+    songs[body.name] = {};
+    songs[body.name].name = body.name;
   }
 
-  users[body.name].age = body.age;
+  songs[body.name].notes = body.notes;
 
   if (responseCode === 201) {
     responseJSON.message = 'Created Successfully';
@@ -76,7 +78,7 @@ const notFoundMeta = (request, response) => respondJSONMeta(request, response, 4
 module.exports = {
   notFound,
   notFoundMeta,
-  getUsers,
-  getUsersMeta,
-  addUser,
+  loadSongs,
+  loadSongsMeta,
+  saveSong,
 };

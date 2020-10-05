@@ -1,6 +1,6 @@
 const http = require('http');
 const url = require('url');
-// const query = require('querystring');
+const query = require('querystring');
 const htmlHandler = require('./htmlResponses.js');
 const jsonHandler = require('./jsonResponses.js');
 const mediaHandler = require('./mediaResponses.js');
@@ -13,6 +13,7 @@ const urlStruct = {
     '/css/styles.css': htmlHandler.getCSS,
     '/js/main.js': htmlHandler.getMain,
     '/js/classes.js': htmlHandler.getClasses,
+    '/js/PIXI.TextInput.js': htmlHandler.getPixiTextInput,
     '/sounds/A1.wav': mediaHandler.getA1,
     '/sounds/Ab1.wav': mediaHandler.getAb1,
     '/sounds/B1.wav': mediaHandler.getB1,
@@ -37,18 +38,43 @@ const urlStruct = {
     '/images/instructionsBG.jpg': mediaHandler.getInstructionsBG,
     '/images/WhiteKeyPress.png': mediaHandler.getWhiteKeyPress,
     '/images/BlackKeyPress.png': mediaHandler.getBlackKeyPress,
+    '/saveSong': jsonHandler.saveSong,
+    '/loadSongs': jsonHandler.loadSongs,
     notFound: jsonHandler.notFound,
   },
   HEAD: {
+    '/loadSongs': jsonHandler.loadSongsMeta,
+    notFound: jsonHandler.notFoundMeta,
   },
 };
 
-const handlePost = () => {};
+// handle POST requests
+const handlePost = (request, response, parsedUrl) => {
+  if (parsedUrl.pathname === '/saveSong') {
+    const body = [];
+    request.on('error', (err) => {
+      console.dir(err);
+      response.statusCode = 400;
+      response.end();
+    });
+
+    request.on('data', (chunk) => {
+      body.push(chunk);
+    });
+
+    request.on('end', () => {
+      const bodyString = Buffer.concat(body).toString();
+      const bodyParams = JSON.parse(bodyString);
+
+      jsonHandler.saveSong(request, response, bodyParams);
+    });
+  }
+};
 
 // handle GET requests
-const handleGet = (request, response, parsedUrl) => {
+const handleGet = (request, response, parsedUrl, params) => {
   if (urlStruct[request.method][parsedUrl.pathname]) {
-    urlStruct[request.method][parsedUrl.pathname](request, response);
+    urlStruct[request.method][parsedUrl.pathname](request, response, params);
   } else {
     urlStruct[request.method].notFound(request, response);
   }
@@ -56,11 +82,12 @@ const handleGet = (request, response, parsedUrl) => {
 
 const onRequest = (request, response) => {
   const parsedUrl = url.parse(request.url);
+  const params = query.parse(parsedUrl.query);
 
   if (request.method === 'POST') {
     handlePost(request, response, parsedUrl);
   } else {
-    handleGet(request, response, parsedUrl);
+    handleGet(request, response, parsedUrl, params);
   }
 };
 

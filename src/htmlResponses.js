@@ -4,34 +4,28 @@ const index = fs.readFileSync(`${__dirname}/../client/index.html`);
 const css = fs.readFileSync(`${__dirname}/../client/css/styles.css`);
 const main = fs.readFileSync(`${__dirname}/../client/js/main.js`);
 const classes = fs.readFileSync(`${__dirname}/../client/js/classes.js`);
+const pixiTextInput = fs.readFileSync(`${__dirname}/../client/js/PIXI.TextInput.js`);
 
-const getIndex = (request, response) => {
-  response.writeHead(200, { 'Content-Type': 'text/html' });
-  response.write(index);
+const get = (response, content, contentType) => {
+  response.writeHead(200, { 'Content-Type': contentType });
+  response.write(content);
   response.end();
 };
 
-const getCSS = (request, response) => {
-  response.writeHead(200, { 'Content-Type': 'text/css' });
-  response.write(css);
-  response.end();
-};
+const getIndex = (request, response) => { get(response, index, 'text/html'); };
 
-const getMain = (request, response) => {
-  response.writeHead(200, { 'Content-Type': 'text/javascript' });
-  response.write(main);
-  response.end();
-};
+const getCSS = (request, response) => { get(response, css, 'text/css'); };
 
-const getClasses = (request, response) => {
-  response.writeHead(200, { 'Content-Type': 'text/javascript' });
-  response.write(classes);
-  response.end();
-};
+const getMain = (request, response) => { get(response, main, 'text/javascript'); };
+
+const getClasses = (request, response) => { get(response, classes, 'text/javascript'); };
+
+const getPixiTextInput = (request, response) => { get(response, pixiTextInput, 'text/javascript'); };
 
 module.exports = {
   getIndex,
   getCSS,
   getMain,
   getClasses,
+  getPixiTextInput,
 };
